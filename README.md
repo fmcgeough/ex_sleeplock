@@ -116,7 +116,7 @@ acquire. lock denied. adding to queue: {#PID<0.253.0>, #Reference<0.316635732.56
 # function `next_caller/1` is called. This examines the queue to see what
 # is the next function to run. There's two waiting and the first will be
 # granted the lock that was just released and removed from the `waiting` queue.
-calling next_caller: %Sleeplock.Slot{
+calling next_caller: %ExSleeplock.Slot{
   current: %{#PID<0.251.0> => #Reference<0.316635732.565706754.204892>},
   slots: 2,
   waiting: {[{#PID<0.253.0>, #Reference<0.316635732.565706754.204884>}],
@@ -127,7 +127,7 @@ next_caller, returning :ok for process in queue: {#PID<0.252.0>, #Reference<0.31
 # The second process in first group releases its lock. `next_caller/1` is
 # called again and there's still one more process waiting to run so it
 # gets the lock and runs
-calling next_caller: %Sleeplock.Slot{
+calling next_caller: %ExSleeplock.Slot{
   current: %{#PID<0.252.0> => #Reference<0.316635732.565706761.204552>},
   slots: 2,
   waiting: {[], [{#PID<0.253.0>, #Reference<0.316635732.565706754.204884>}]}
@@ -136,12 +136,12 @@ next_caller, returning :ok for process in queue: {#PID<0.253.0>, #Reference<0.31
 
 # when release is called by the last 2 processes, the `waiting` element in our
 # GenServer state is empty. Nothing left to do.
-calling next_caller: %Sleeplock.Slot{
+calling next_caller: %ExSleeplock.Slot{
   current: %{#PID<0.252.0> => #Reference<0.316635732.565706761.204552>},
   slots: 2,
   waiting: {[], []}
 }
-calling next_caller: %Sleeplock.Slot{current: %{}, slots: 2, waiting: {[], []}}
+calling next_caller: %ExSleeplock.Slot{current: %{}, slots: 2, waiting: {[], []}}
 ```
 
 The only thing that you might not have seen if you've worked with Elixir/Phoenix
