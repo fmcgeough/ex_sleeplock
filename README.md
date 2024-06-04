@@ -84,8 +84,8 @@ defmodule TestSleepwalk do
   end
 end
 
-:ok = ExSleeplock.new(:test_sleepwalk, 2)
-tasks = Enum.map(1..6, fn idx -> Task.async(fn -> TestSleepwalk.process(:test_sleepwalk, 1_000, idx) end) end) |> Task.await_many(10_000)
+iex> {:ok, pid} = ExSleeplock.new(:test_sleepwalk, 2)
+iex> results = Enum.map(1..6, fn idx -> Task.async(fn -> TestSleepwalk.process(:test_sleepwalk, 1_000, idx) end) end) |> Task.await_many(10_000)
 ```
 
 ## Details On What Is Actually Going On
@@ -93,56 +93,42 @@ tasks = Enum.map(1..6, fn idx -> Task.async(fn -> TestSleepwalk.process(:test_sl
 If we had output happening on our acquire & release code, what would it look like?
 Let's assume we're running the same code described above in "Trying It Out in iex".
 That is, there are 2 slots but 4 processes wanting to run. This is what we'd see
-(with some comments added as explanation):
+(with some comments added for the first few steps as explanation):
 
 ```
-# first task calls acquire and it works!
-calling acquire: {#PID<0.250.0>, #Reference<0.316635732.565706754.204882>}
-acquire. lock granted: {#PID<0.250.0>, #Reference<0.316635732.565706754.204882>}
+# First task acquires a lock and begins executing
+Locked 1 at: 1717531043060.
+# Second task acquires a lock and begins executing
+Locked 2 at: 1717531043060.
 
-# second task calls acquire and it works!
-calling acquire: {#PID<0.251.0>, #Reference<0.316635732.565706761.204521>}
-acquire. lock granted: {#PID<0.251.0>, #Reference<0.316635732.565706761.204521>}
+# First task completes and release its lock
+Releasing 1 at: 1717531044061.
 
-# third task calls acquire and the lock is denied. this process is added to our queue
-calling acquire: {#PID<0.252.0>, #Reference<0.316635732.565706754.204883>}
-acquire. lock denied. adding to queue: {#PID<0.252.0>, #Reference<0.316635732.565706754.204883>}
+# Third task acquires the just released lock and begins executing
+Locked 3 at: 1717531044062.
 
-# fourth task calls acquire and the lock is denied. this process is added to our queue
-calling acquire: {#PID<0.253.0>, #Reference<0.316635732.565706754.204884>}
-acquire. lock denied. adding to queue: {#PID<0.253.0>, #Reference<0.316635732.565706754.204884>}
+# Second task completes and releases its lock
+Releasing 2 at: 1717531044062.
 
-# when one of the first two running processes releases its lock the
-# function `next_caller/1` is called. This examines the queue to see what
-# is the next function to run. There's two waiting and the first will be
-# granted the lock that was just released and removed from the `waiting` queue.
-calling next_caller: %ExSleeplock.Slot{
-  current: %{#PID<0.251.0> => #Reference<0.316635732.565706754.204892>},
-  slots: 2,
-  waiting: {[{#PID<0.253.0>, #Reference<0.316635732.565706754.204884>}],
-   [{#PID<0.252.0>, #Reference<0.316635732.565706754.204883>}]}
-}
-next_caller, returning :ok for process in queue: {#PID<0.252.0>, #Reference<0.316635732.565706754.204883>}
-
-# The second process in first group releases its lock. `next_caller/1` is
-# called again and there's still one more process waiting to run so it
-# gets the lock and runs
-calling next_caller: %ExSleeplock.Slot{
-  current: %{#PID<0.252.0> => #Reference<0.316635732.565706761.204552>},
-  slots: 2,
-  waiting: {[], [{#PID<0.253.0>, #Reference<0.316635732.565706754.204884>}]}
-}
-next_caller, returning :ok for process in queue: {#PID<0.253.0>, #Reference<0.316635732.565706754.204884>}
-
-# when release is called by the last 2 processes, the `waiting` element in our
-# GenServer state is empty. Nothing left to do.
-calling next_caller: %ExSleeplock.Slot{
-  current: %{#PID<0.252.0> => #Reference<0.316635732.565706761.204552>},
-  slots: 2,
-  waiting: {[], []}
-}
-calling next_caller: %ExSleeplock.Slot{current: %{}, slots: 2, waiting: {[], []}}
+# Fourth task acquires the just released lock and begins executing
+Locked 4 at: 1717531044062.
+Releasing 3 at: 1717531045063.
+Releasing 4 at: 1717531045063.
+Locked 5 at: 1717531045063.
+Locked 6 at: 1717531045063.
+Releasing 5 at: 1717531046064.
+Releasing 6 at: 1717531046064.
 ```
+
+If you use the pid acquired when creating the sleeplock you can see its current
+state:
+
+```
+iex> :sys.get_state(pid)
+%ExSleeplock.Slot{slots: 2, current: %{}, waiting: {[], []}}
+```
+
+## Other Notes
 
 The only thing that you might not have seen if you've worked with Elixir/Phoenix
 in standard web apps is using
