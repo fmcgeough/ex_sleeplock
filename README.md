@@ -5,7 +5,7 @@ block of code simultaneously in Elixir.
 
 Started from the Erlang project `https://hex.pm/packages/sleeplocks` with added
 monitoring of processes that take locks and dynamic supervision of the locks
-themselves. Thanks to Isaac Whitfield who created the sleeplocks library.
+themselves. Thanks to _Isaac Whitfield_ who created the sleeplocks library.
 
 ## Details
 
