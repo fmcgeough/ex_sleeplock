@@ -2,9 +2,10 @@
 
 Allow concurrent throttling using a named lock in Elixir.
 
-This project was inspired by the Erlang project `https://hex.pm/packages/sleeplocks`.
-This library adds monitoring of processes that take locks and dynamic supervision
-of the locks themselves. Thanks to _Isaac Whitfield_ who created the sleeplocks library.
+This project was inspired by the Erlang project [sleeplocks](https://hex.pm/packages/sleeplocks).
+It provides similar functionality but adds monitoring of processes that take locks
+and dynamic supervision of the locks themselves. Thanks to _Isaac Whitfield_ who
+created the sleeplocks library.
 
 ## What Does the Library Provide?
 

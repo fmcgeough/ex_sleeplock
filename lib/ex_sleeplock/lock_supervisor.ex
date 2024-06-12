@@ -1,14 +1,15 @@
 defmodule ExSleeplock.LockSupervisor do
-  @moduledoc """
-  Provide a Dynamic supervisor for our locks so that they are restarted
-  when necessary
-  """
+  @moduledoc false
+
   use DynamicSupervisor
 
   require Logger
 
-  def start_link(init_arg) do
-    DynamicSupervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
+  @doc """
+  Called when library is loaded to start the supervisor
+  """
+  def start_link(_arg) do
+    DynamicSupervisor.start_link(__MODULE__, :ok, name: __MODULE__)
   end
 
   @impl true
@@ -16,7 +17,10 @@ defmodule ExSleeplock.LockSupervisor do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
-  def start_lock(name, num_slots) do
+  @doc """
+  Start a child sleep lock process
+  """
+  def start_lock(name, num_slots) when is_integer(num_slots) and num_slots > 0 do
     child_spec = %{
       id: ExSleeplock,
       start: {ExSleeplock, :start_link, [%{name: name, num_slots: num_slots}]},
