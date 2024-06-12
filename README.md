@@ -33,12 +33,12 @@ not be able to respond in a timely manner to incoming API requests.
 ## Simple Explanation of the Mechanics
 
 ```
-parallelism = 2
-:ok = ExSleeplock.new(:process_foo, parallelism)
+ExSleeplock.new(:process_foo, _parallelism = 2)
 ```
 
-This creates a lock with two slots called `:process_foo`. Only two processes
-are allowed to execute at one time. The app can do:
+This creates a lock called `:process_foo` with two slots. Only two processes
+are allowed to execute concurrently. Using it from an app looks something
+like this:
 
 ```
 result = ExSleeplock.execute(:process_foo, fn -> some_work() end)
@@ -70,10 +70,9 @@ released (even though the processs never called `ExSleeplock.release/1`).
 
 ## Trying It Out in iex
 
-Start an iex session and paste the following module into the session to
-create the `TestSleepwalk` module. The `process/3` function in the module
-simulates processing by sleeping for 1 second plus some random
-number of milliseconds (< 100).
+Start an iex session and paste the following module into the session.
+The `process/3` function in the module simulates processing by sleeping
+for 1 second plus some random number of milliseconds (< 100).
 
 ```
 defmodule TestSleepwalk do

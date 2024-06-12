@@ -1,57 +1,12 @@
 defmodule ExSleeplock do
   @moduledoc """
-  Allow creation of locks that can be acquired and released in a manner
-  similar to spinlocks but with the ability to throttle the number of
-  processes that can acquire the lock at once.
+  API allowing creation of locks to throttle concurrent processing and
+  functions to obtain and release the locks.
 
   This is an Elixir implementation fo an existing library called `sleeplocks`.
   It was ported to Elixir to allow for better integration with Elixir and
   to implement a supervisor for the locks so that they can be restarted
   when necessary.
-
-  Sleep locks allow an app to throttle the number of processes that are allowed
-  to be executing some section of code at any one time. It does this by creating
-  the number of slots that the caller requested and only allowing that number of
-  processes to get the lock at any one time.
-
-  A good example of when this is needed is when an app connects to Kafka via
-  `brod` and subscribes to a topic. Since `brod` is starting its own processes
-  to handle messages and doing calls back into the app, the app may be
-  overwhelmed with calls from brod. This is especially concerning if the app
-  tries to use a limited resource on the callback (like doing some database
-  activity).
-
-  Usage is fairly straightforward. Let's assume that you have a subscriber
-  callback for `brod` that ends up calling a function: `process_foo(msg)`
-  and you only want to allow 2 of those calls to be executing simulatenously.
-  When the app starts up you create a Sleeplock by:
-
-  ```
-  parallelism = 2
-  :ok = Sleeplock.new(:process_foo, parallelism)
-  ```
-
-  This creates the sleep lock with two slots. Only two processes are allowed to
-  execute at one time. Now change the call to:
-
-  ```
-  Sleeplock.execute(:process_foo, fn -> process_foo(msg) end)
-  ```
-
-  If there are already two processes executing `process_foo/1` then the third call
-  waits until one of the two currently running completes. Once a currently
-  executing call completes the waiting process starts immediately.
-
-  Using `Sleeplock.execute/2` is the easiest way to use this library.
-  You can manage your own lock and timing of execution of a block of code
-  using `acquire/1` (blocking) or `attempt/1` (non-blocking). If you are
-  using those functions then you are responsible for ensuring `release/1`
-  is called. Until `release/1` is called a slot is being used and a new
-  process may not be able to move forward.
-
-  When a lock is created the sleep lock code creates a monitor on the process
-  taking the lock. If the process exits unexpectedly the lock is automatically
-  released (even though the processs never called `release/1`).
   """
   use GenServer
 

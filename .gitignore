@@ -28,3 +28,5 @@ ex_sleeplock-*.tar
 /.elixir-tools/
 
 .elixir-ls/
+
+.DS_Store

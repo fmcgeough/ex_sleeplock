@@ -9,8 +9,8 @@ defmodule ExSleeplock.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      name: "sleeplock",
-      source_url: "https://github.com/PagerDuty/sleeplock",
+      name: "ex_sleeplock",
+      source_url: "https://github.com/fmcgeough/ex_sleeplock",
       package: package(),
       docs: [
         main: "readme",
