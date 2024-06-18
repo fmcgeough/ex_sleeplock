@@ -21,15 +21,21 @@ first out) manner.
 
 ## Why would you need this?
 
-Here is a scenario where the library can be useful. An app connects to a message
-source (Kafka). Messages can arrive in parallel for processing and the processing
-stores data in a relational database. In addition, the app is also responsible for
-servicing an API. The API reads / writes to the same relational database.
+The library is useful when you can have code within your app that must access a
+resource that is limited in some way. You want only 2 or 3 (or some limited
+number) of processes accessing the resource at the same time.
 
-There are two issues. One, there are a limited number of connections to the database.
-You might get n incoming messages but have much less than n connections available.
-Second, you don't want all your connections used up to process incoming messages and
-not be able to respond in a timely manner to incoming API requests.
+An example scenario is an app that connects to Kafka as a source of messages
+that must be processed. Messages can arrive in parallel and are processed by
+separate processes. The messages are processedc and stored in a relational
+database. In addition, the app is also responsible for servicing an API. The API
+reads / writes to the same relational database.
+
+There are two issues in this scenario. One, there are a limited number of
+connections to the database. You might get n incoming messages but have much
+less than n connections available. Second, you don't want all your connections
+used up to process incoming messages since your API could not respond in a timely
+manner to incoming API requests.
 
 ## Simple Explanation of the Mechanics
 
