@@ -23,7 +23,7 @@ defmodule ExSleeplock.LockSupervisor do
   def start_lock(name, num_slots) when is_integer(num_slots) and num_slots > 0 do
     child_spec = %{
       id: ExSleeplock,
-      start: {ExSleeplock, :start_link, [%{name: name, num_slots: num_slots}]},
+      start: {ExSleeplock.Lock, :start_link, [%{name: name, num_slots: num_slots}]},
       restart: :permanent,
       type: :worker
     }
