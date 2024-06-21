@@ -54,6 +54,16 @@ defmodule ExSleeplock.LockSupervisor do
     result
   end
 
+  @doc """
+  Stop a lock process
+  """
+  def stop_lock(name) do
+    case Process.whereis(name) do
+      nil -> {:error, :sleeplock_not_found}
+      pid -> DynamicSupervisor.terminate_child(__MODULE__, pid)
+    end
+  end
+
   defp log_result({:ok, _}, lock_info) do
     EventGenerator.lock_created(lock_info)
   end

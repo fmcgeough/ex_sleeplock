@@ -8,6 +8,7 @@ defmodule ExSleeplockTest do
   import ExSleeplock.TelemetryTestHelp
 
   alias ExSleeplock.EventGenerator.LockTelemetry
+  alias ExSleeplock.LockSupervisor
 
   @lock_create_event [:ex_sleeplock, :lock_created]
   @lock_acquired_event [:ex_sleeplock, :lock_acquired]
@@ -31,12 +32,12 @@ defmodule ExSleeplockTest do
 
     test "creating a ExSleeplock using Module name (which is just an atom) works" do
       assert {:ok, _pid} = ExSleeplock.new(ExSleeplockTest, 1)
-      ExSleeplock.Lock.stop_lock_process(ExSleeplockTest)
+      LockSupervisor.stop_lock(ExSleeplockTest)
     end
 
     test "creating a ExSleeplock using atom works" do
       assert {:ok, _pid} = ExSleeplock.new(:ex_sleeplock_test, _num_slots = 1)
-      ExSleeplock.Lock.stop_lock_process(:ex_sleeplock_test)
+      LockSupervisor.stop_lock(:ex_sleeplock_test)
     end
 
     test "attempting to create the same ExSleeplock twice fails", %{test: lock_name} do
@@ -49,14 +50,14 @@ defmodule ExSleeplockTest do
 
       assert logs =~ "[error]"
       assert logs =~ "Unable to start lock"
-      ExSleeplock.Lock.stop_lock_process(lock_name)
+      LockSupervisor.stop_lock(lock_name)
     end
 
     test "creating multiple locks works" do
       assert {:ok, _pid} = ExSleeplock.new(:ex_sleeplock_test1, 1)
       assert {:ok, _pid} = ExSleeplock.new(:ex_sleeplock_test2, 1)
-      ExSleeplock.Lock.stop_lock_process(:ex_sleeplock_test1)
-      ExSleeplock.Lock.stop_lock_process(:ex_sleeplock_test2)
+      LockSupervisor.stop_lock(:ex_sleeplock_test1)
+      LockSupervisor.stop_lock(:ex_sleeplock_test2)
     end
   end
 
@@ -73,7 +74,7 @@ defmodule ExSleeplockTest do
     test "acquire works when lock exists", %{test: lock_name} do
       assert {:ok, _pid} = ExSleeplock.new(lock_name, 2)
       assert :ok == ExSleeplock.acquire(lock_name)
-      ExSleeplock.Lock.stop_lock_process(lock_name)
+      LockSupervisor.stop_lock(lock_name)
     end
   end
 
@@ -90,14 +91,14 @@ defmodule ExSleeplockTest do
     test "release when not locked returns :ok", %{test: lock_name} do
       assert {:ok, _pid} = ExSleeplock.new(lock_name, _num_slots = 2)
       assert ExSleeplock.release(lock_name) == :ok
-      ExSleeplock.Lock.stop_lock_process(lock_name)
+      LockSupervisor.stop_lock(lock_name)
     end
 
     test "release when locked returns :ok", %{test: lock_name} do
       assert {:ok, _pid} = ExSleeplock.new(lock_name, _num_slots = 2)
-      :ok = ExSleeplock.acquire(lock_name)
-      assert ExSleeplock.release(lock_name) == :ok
-      ExSleeplock.Lock.stop_lock_process(lock_name)
+      assert :ok = ExSleeplock.acquire(lock_name)
+      assert :ok == ExSleeplock.release(lock_name)
+      LockSupervisor.stop_lock(lock_name)
     end
   end
 
@@ -127,15 +128,29 @@ defmodule ExSleeplockTest do
       ExSleeplock.new(test, 1)
       assert :ok == ExSleeplock.attempt(test)
       ExSleeplock.release(test)
-      ExSleeplock.Lock.stop_lock_process(test)
+      LockSupervisor.stop_lock(test)
     end
 
     test "if lock is unavailable `{:error, :unavailable}` is returned", %{test: test} do
-      ExSleeplock.new(test, 1)
+      assert {:ok, _pid} = ExSleeplock.new(test, 1)
       assert :ok == ExSleeplock.attempt(test)
       assert {:error, :unavailable} == ExSleeplock.attempt(test)
       ExSleeplock.release(test)
-      ExSleeplock.Lock.stop_lock_process(test)
+      LockSupervisor.stop_lock(test)
+    end
+
+    test "multiple locks have independent attempt behaviour" do
+      assert {:ok, _pid} = ExSleeplock.new(:test1, 1)
+      assert {:ok, _pid} = ExSleeplock.new(:test2, 1)
+
+      assert :ok == ExSleeplock.attempt(:test1)
+      assert :ok == ExSleeplock.attempt(:test2)
+
+      ExSleeplock.release(:test1)
+      ExSleeplock.release(:test2)
+
+      ExSleeplock.Lock.stop_lock_process(:test1)
+      ExSleeplock.Lock.stop_lock_process(:test2)
     end
   end
 
@@ -175,7 +190,7 @@ defmodule ExSleeplockTest do
       # Wait for all the tasks to finish
       Task.await_many(tasks, process_time * 3)
 
-      ExSleeplock.Lock.stop_lock_process(lock_name)
+      LockSupervisor.stop_lock(lock_name)
     end
   end
 
@@ -198,7 +213,7 @@ defmodule ExSleeplockTest do
       assert_receive {:telemetry_event, @lock_acquired_event, %{running: 1, waiting: 0}, ^lock_info}, 500
       assert_receive {:telemetry_event, @lock_released_event, %{running: 0, waiting: 0}, ^lock_info}, 500
 
-      ExSleeplock.Lock.stop_lock_process(lock_name)
+      LockSupervisor.stop_lock(lock_name)
     end
   end
 end
