@@ -114,8 +114,28 @@ defmodule ExSleeplockTest do
   end
 
   describe "attempt/1" do
+    setup do
+      stub_with(ExSleeplock.EventGeneratorMock, ExSleeplock.EventGenerator.NoOp)
+      :ok
+    end
+
     test "trying to use non-existent is error" do
       assert ExSleeplock.attempt(:foo) == {:error, :sleeplock_not_found}
+    end
+
+    test "if lock is available returns `:ok`", %{test: test} do
+      ExSleeplock.new(test, 1)
+      assert :ok == ExSleeplock.attempt(test)
+      ExSleeplock.release(test)
+      ExSleeplock.Lock.stop_lock_process(test)
+    end
+
+    test "if lock is unavailable `{:error, :unavailable}` is returned", %{test: test} do
+      ExSleeplock.new(test, 1)
+      assert :ok == ExSleeplock.attempt(test)
+      assert {:error, :unavailable} == ExSleeplock.attempt(test)
+      ExSleeplock.release(test)
+      ExSleeplock.Lock.stop_lock_process(test)
     end
   end
 

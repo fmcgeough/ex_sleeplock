@@ -19,9 +19,10 @@ defmodule ExSleeplock.ApplicationTest do
     end
 
     test "valid locks; all are returned" do
-      locks = Enum.map([:test1, :test2, :test3], fn name ->
-        %{name: name, num_slots: 1}
-      end)
+      locks =
+        Enum.map([:test1, :test2, :test3], fn name ->
+          %{name: name, num_slots: 1}
+        end)
 
       Application.put_env(:ex_sleeplock, :locks, locks)
       specs = Enum.map(locks, &LockSupervisor.lock_child_spec/1)
@@ -29,9 +30,10 @@ defmodule ExSleeplock.ApplicationTest do
     end
 
     test "invalid locks are ignored" do
-      locks = Enum.map([:test1, :test2, :test3], fn name ->
-        %{name: name, num_slots: 1}
-      end)
+      locks =
+        Enum.map([:test1, :test2, :test3], fn name ->
+          %{name: name, num_slots: 1}
+        end)
 
       Application.put_env(:ex_sleeplock, :locks, [%{test123: :invalid}] ++ locks ++ [%{test: :invalid}])
       specs = Enum.map(locks, &LockSupervisor.lock_child_spec/1)
