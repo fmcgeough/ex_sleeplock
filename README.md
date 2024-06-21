@@ -8,25 +8,41 @@ It provides similar functionality but adds:
 - monitoring of processes that take locks
 - dynamic supervision of the locks themselves
 - telemetry event generation
+- creation of locks at startup from config file
 
 Thanks to _Isaac Whitfield_ who created the Erlang sleeplocks library.
 
 ## What Does the Library Provide?
 
-This library provides an app with the ability to create a named lock with a
-value n (positive integer value) indicating the number of concurrent
-processes. Only n processes can obtain the lock at any time. An executing
-process is stored in a slot. When a lock is released the slot becomes available.
+This library provides an app with the ability to create a lock with a name
+and positive integer value. The integer value indicates the allowed number of
+concurrent processes. These are referred to as "slots".
 
-When no slots are available for a lock a process asking for that lock is
-placed in a queue. The process execution is suspended until a slot is available.
-As slots become available waiting processes are continued in a FIFO (first in
-first out) manner.
+The created lock is then used by the app to execute code protected by the lock.
+A lock is kept until the block of code completes. Then the lock is released.
+When the maximum number of concurrent processes are running there are no "slots"
+available. If a caller attempts to obtain the lock to execute code the caller is
+ placed in a queue. The process execution is suspended until a lock is
+available. If there are multiple processes waiting they are handled in a FIFO
+(first in first out) manner.
+
+## Configuring Lock Creation on Startup
+
+When the library starts up it reads the application environment to see if any
+locks are configured. These locks are automatically started. For example:
+
+```
+config :ex_sleeplock, locks: [%{name: :test1, num_slots: 2}, %{name: :test2, num_slots: 3}]
+```
+
+This config would create two slocks named `:test1` and `:test2` with the indicated
+concurrency.
 
 ## Telemetry
 
-The library can be configured to generate telemetry. To do so setup your application
-environment with:
+The library does not generate any telemetry events by default. The app can
+configure it to do so by setting up the following environment (config file)
+element:
 
 ```
 :ex_sleeplock, notifier: ExSleeplock.EventGenerator.LockTelemetry
@@ -34,13 +50,13 @@ environment with:
 
 When this is setup three telemetry events are generated.
 
-- `[:ex_sleeplock, :lock_created]` - generated when the lock is created
-  - measurements - always `%{value: 1}`
+- `[:ex_sleeplock, :lock_created]` - lock created
+  - measurements - `%{value: 1}`
   - metadata - `t:ExSleeplock.lock_info/0`
-- `[:ex_sleeplock, :lock_acquired]` - generated when lock is acquired
+- `[:ex_sleeplock, :lock_acquired]` - lock acquired
   - measurements - `t:ExSleeplock.lock_state/0`
   - metadata - `t:ExSleeplock.lock_info/0`
-- `[:ex_sleeplock, :lock_released]` - generated when lock is acquired
+- `[:ex_sleeplock, :lock_released]` - lock released
   - measurements - `t:ExSleeplock.lock_state/0`
   - metadata - `t:ExSleeplock.lock_info/0`
 

@@ -51,6 +51,13 @@ defmodule ExSleeplockTest do
       assert logs =~ "Unable to start lock"
       ExSleeplock.Lock.stop_lock_process(lock_name)
     end
+
+    test "creating multiple locks works" do
+      assert {:ok, _pid} = ExSleeplock.new(:ex_sleeplock_test1, 1)
+      assert {:ok, _pid} = ExSleeplock.new(:ex_sleeplock_test2, 1)
+      ExSleeplock.Lock.stop_lock_process(:ex_sleeplock_test1)
+      ExSleeplock.Lock.stop_lock_process(:ex_sleeplock_test2)
+    end
   end
 
   describe "acquire/1" do

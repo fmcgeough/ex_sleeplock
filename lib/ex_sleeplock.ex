@@ -19,18 +19,18 @@ defmodule ExSleeplock do
   General information about a lock using when generating events
   """
   @type lock_info :: %{
-      name: atom(),
-      num_slots: pos_integer()
-  }
+          name: atom(),
+          num_slots: pos_integer()
+        }
 
   @typedoc """
   Number of processes currently running in parallel and the number of processes waiting for a lock
   used when generating acquire and release events
   """
   @type lock_state :: %{
-    running: non_neg_integer(),
-    waiting: non_neg_integer()
-  }
+          running: non_neg_integer(),
+          waiting: non_neg_integer()
+        }
 
   @doc """
   Create a sleep lock
@@ -53,7 +53,7 @@ defmodule ExSleeplock do
   @spec new(atom(), pos_integer()) ::
           {:ok, pid()} | {:error, :invalid, String.t()} | {:error, {:already_started, pid}}
   def new(name, num_slots) when is_atom(name) and is_integer(num_slots) and num_slots > 0 do
-    ExSleeplock.LockSupervisor.start_lock(name, num_slots)
+    ExSleeplock.LockSupervisor.start_lock(%{name: name, num_slots: num_slots})
   end
 
   def new(_name, _num_slots) do

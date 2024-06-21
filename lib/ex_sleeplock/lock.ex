@@ -17,7 +17,7 @@ defmodule ExSleeplock.Lock do
   end
 
   def stop_lock_process(name) do
-    GenServer.call(name, :stop_lock_process)
+    GenServer.call(name, :stop_lock_process, :infinity)
   end
 
   @impl true
