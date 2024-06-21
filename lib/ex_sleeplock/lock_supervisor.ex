@@ -3,6 +3,8 @@ defmodule ExSleeplock.LockSupervisor do
 
   use DynamicSupervisor
 
+  alias ExSleeplock.EventGenerator
+
   require Logger
 
   @doc """
@@ -21,28 +23,25 @@ defmodule ExSleeplock.LockSupervisor do
   Start a child sleep lock process
   """
   def start_lock(name, num_slots) when is_integer(num_slots) and num_slots > 0 do
+    lock_info = %{name: name, num_slots: num_slots}
+
     child_spec = %{
       id: ExSleeplock,
-      start: {ExSleeplock.Lock, :start_link, [%{name: name, num_slots: num_slots}]},
+      start: {ExSleeplock.Lock, :start_link, [lock_info]},
       restart: :permanent,
       type: :worker
     }
 
-    lock_description = lock_description(name, num_slots)
     result = DynamicSupervisor.start_child(__MODULE__, child_spec)
-    log_result(result, lock_description)
+    log_result(result, lock_info)
     result
   end
 
-  defp log_result({:ok, _}, lock_description) do
-    Logger.info("Starting #{lock_description}")
+  defp log_result({:ok, _}, lock_info) do
+    EventGenerator.lock_created(lock_info)
   end
 
-  defp log_result(result, lock_description) do
-    Logger.error("Unable to start #{lock_description}, error: #{inspect(result)}")
-  end
-
-  defp lock_description(name, num_slots) do
-    "lock #{name}, num_slots: #{num_slots}"
+  defp log_result(result, lock_info) do
+    Logger.error("Unable to start lock #{inspect(lock_info)}, error: #{inspect(result)}")
   end
 end

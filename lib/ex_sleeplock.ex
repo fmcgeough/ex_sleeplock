@@ -3,35 +3,52 @@ defmodule ExSleeplock do
   API allowing creation of locks to throttle concurrent processing via
   obtaining a lock before executing functionality you want to limit.
 
-  This is an Elixir implementation based on an existing Erlang library
-  integration with Elixir and to implement a supervisor for the locks
-  so that they can be restarted when necessary.
+  Before a lock can be used it must be created using `new/2`. When `new/2`
+  is called a process is created to manage the lock. The lock is identified
+  by a unique atom and the number of slots indicates how many processes can
+  hold the lock at once. The name of the lock is the process name.
 
-  Before a lock can be used it must be created using `new/2`. The
-  preferred way to use a created lock is with the function `execute/2`.
+  The preferred way to use a created lock is with the function `execute/2`.
   This function acquires the lock, executes the function passed in and
-  then releases the lock. This ensures that the lock is always released
-  even if an exception is raised.
+  then releases the lock (returning the function return value to the caller)
+  This ensures that the lock is always released even if an exception is raised.
   """
   @help "Sleep locks must have a unique name indicated by an atom and slots must be a positive integer"
+
+  @typedoc """
+  General information about a lock using when generating events
+  """
+  @type lock_info :: %{
+      name: atom(),
+      num_slots: pos_integer()
+  }
+
+  @typedoc """
+  Number of processes currently running in parallel and the number of processes waiting for a lock
+  used when generating acquire and release events
+  """
+  @type lock_state :: %{
+    running: non_neg_integer(),
+    waiting: non_neg_integer()
+  }
 
   @doc """
   Create a sleep lock
 
   ## Arguments
 
-  * name - a unique atom identifying the sleep lock
+  * name - a unique atom identifying the sleep lock. The name becomes the process name
+    for the lock
   * num_slots - a positive integer indicating how many processes are allowed to hold
     this sleep lock at once
 
   ## Returns
 
-  * `{:ok, pid}` - on success the sleep lock codes starts a GenServer using the
-    name supplied
-  * `{:error, :invalid, msg}` - if the parameters are invalid then you'll get
-    back this
-  * `{:error, {:already_started, pid}}` - if you attempt to call new twice with
-    the same name then you'll get this error
+  * `{:ok, pid}` - on success a GenServer using the name supplied is started. This
+     process is supervised by the library.
+  * `{:error, :invalid, msg}` - returned when parameters are invalid
+  * `{:error, {:already_started, pid}}` - returned when attempting to create the same
+    lock more than once
   """
   @spec new(atom(), pos_integer()) ::
           {:ok, pid()} | {:error, :invalid, String.t()} | {:error, {:already_started, pid}}

@@ -3,9 +3,13 @@
 Allow concurrent throttling using a named lock in Elixir.
 
 This project was inspired by the Erlang project [sleeplocks](https://hex.pm/packages/sleeplocks).
-It provides similar functionality but adds monitoring of processes that take locks
-and dynamic supervision of the locks themselves. Thanks to _Isaac Whitfield_ who
-created the sleeplocks library.
+It provides similar functionality but adds:
+
+- monitoring of processes that take locks
+- dynamic supervision of the locks themselves
+- telemetry event generation
+
+Thanks to _Isaac Whitfield_ who created the Erlang sleeplocks library.
 
 ## What Does the Library Provide?
 
@@ -14,10 +18,33 @@ value n (positive integer value) indicating the number of concurrent
 processes. Only n processes can obtain the lock at any time. An executing
 process is stored in a slot. When a lock is released the slot becomes available.
 
-When no slots are available for a lock any new process asking for that lock is
+When no slots are available for a lock a process asking for that lock is
 placed in a queue. The process execution is suspended until a slot is available.
 As slots become available waiting processes are continued in a FIFO (first in
 first out) manner.
+
+## Telemetry
+
+The library can be configured to generate telemetry. To do so setup your application
+environment with:
+
+```
+:ex_sleeplock, notifier: ExSleeplock.EventGenerator.LockTelemetry
+```
+
+When this is setup three telemetry events are generated.
+
+- `[:ex_sleeplock, :lock_created]` - generated when the lock is created
+  - measurements - always `%{value: 1}`
+  - metadata - `t:ExSleeplock.lock_info/0`
+- `[:ex_sleeplock, :lock_acquired]` - generated when lock is acquired
+  - measurements - `t:ExSleeplock.lock_state/0`
+  - metadata - `t:ExSleeplock.lock_info/0`
+- `[:ex_sleeplock, :lock_released]` - generated when lock is acquired
+  - measurements - `t:ExSleeplock.lock_state/0`
+  - metadata - `t:ExSleeplock.lock_info/0`
+
+See the documentation for `ExSleeplock` for more information.
 
 ## Why would you need this?
 
