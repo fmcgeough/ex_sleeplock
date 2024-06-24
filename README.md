@@ -198,12 +198,11 @@ Release [6] at: 2024-06-12 16:22:46.246Z.
 [1, 2, 3, 4, 5, 6]
 ```
 
-If you use the pid acquired when creating the sleeplock you can see its current
-state:
+You can use `ExSleeplock.lock_state/1` to examine the current lock staet.
 
 ```
-iex> :sys.get_state(pid)
-%ExSleeplock.Slot{slots: 2, current: %{}, waiting: {[], []}}
+iex> ExSleepLock.lock_state(:test_sleepwalk)
+%{running: 0, waiting: 0}
 ```
 
 ## Other Notes
