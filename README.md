@@ -198,7 +198,7 @@ Release [6] at: 2024-06-12 16:22:46.246Z.
 [1, 2, 3, 4, 5, 6]
 ```
 
-You can use `ExSleeplock.lock_state/1` to examine the current lock staet.
+You can use `ExSleeplock.lock_state/1` to examine the current lock state.
 
 ```
 iex> ExSleepLock.lock_state(:test_sleepwalk)
