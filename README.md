@@ -9,6 +9,7 @@ It provides similar functionality but adds:
 - dynamic supervision of the locks themselves
 - telemetry event generation
 - creation of locks at startup from config file
+- function to get the current state of a lock (number processes running and waiting)
 
 Thanks to _Isaac Whitfield_ who created the Erlang sleeplocks library.
 
