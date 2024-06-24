@@ -13,6 +13,7 @@ defmodule ExSleeplockTest do
   @lock_create_event [:ex_sleeplock, :lock_created]
   @lock_acquired_event [:ex_sleeplock, :lock_acquired]
   @lock_released_event [:ex_sleeplock, :lock_released]
+  @lock_waiting_event [:ex_sleeplock, :lock_waiting]
 
   # Mox should be global since we're working with a GenServer (another process)
   setup :set_mox_global
@@ -170,11 +171,16 @@ defmodule ExSleeplockTest do
       # When a lock is acquired the callback indicates how many locks are in use
       # (how many processes are running with this lock). This should always be less
       # than or equal to the number of slots we have available.
+      # Since we are running 4 processes we should never have more than num_slots
+      # waiting for the lock.
       ExSleeplock.EventGeneratorMock
       |> expect(:lock_acquired, num_processes, fn ^lock_info, lock_state ->
         assert lock_state.running <= num_slots
       end)
       |> expect(:lock_released, num_processes, fn ^lock_info, _lock_state ->
+        :ok
+      end)
+      |> expect(:lock_waiting, num_slots, fn ^lock_info, _lock_state ->
         :ok
       end)
 
@@ -212,6 +218,50 @@ defmodule ExSleeplockTest do
       assert_receive {:telemetry_event, @lock_create_event, %{value: 1}, ^lock_info}, 500
       assert_receive {:telemetry_event, @lock_acquired_event, %{running: 1, waiting: 0}, ^lock_info}, 500
       assert_receive {:telemetry_event, @lock_released_event, %{running: 0, waiting: 0}, ^lock_info}, 500
+
+      LockSupervisor.stop_lock(lock_name)
+    end
+  end
+
+  describe "lock state" do
+    setup do
+      stub_with(ExSleeplock.EventGeneratorMock, ExSleeplock.EventGenerator.NoOp)
+      :ok
+    end
+
+    test "trying to use non-existent is error" do
+      assert ExSleeplock.lock_state(:foo) == {:error, :sleeplock_not_found}
+    end
+
+    test "when no locks obtained returns 0 running and 0 waiting", %{test: lock_name} do
+      stub_with(ExSleeplock.EventGeneratorMock, ExSleeplock.EventGenerator.NoOp)
+      assert {:ok, _pid} = ExSleeplock.new(lock_name, 1)
+      assert %{running: 0, waiting: 0} == ExSleeplock.lock_state(lock_name)
+      LockSupervisor.stop_lock(lock_name)
+    end
+
+    test "when lock is obtained and one is waiting the correct state is returned", %{test: lock_name} do
+      stub_with(ExSleeplock.EventGeneratorMock, ExSleeplock.EventGenerator.LockTelemetry)
+      attach_to_many_events(lock_name, LockTelemetry.events())
+      lock_info = %{name: lock_name, num_slots: 1}
+
+      process_time = 500
+      assert {:ok, _pid} = ExSleeplock.new(lock_name, 1)
+
+      assert :ok == ExSleeplock.acquire(lock_name)
+      assert_receive {:telemetry_event, @lock_acquired_event, %{running: 1, waiting: 0}, ^lock_info}, 500
+      assert %{running: 1, waiting: 0} == ExSleeplock.lock_state(lock_name)
+
+      task = Task.async(fn -> ExSleeplock.execute(lock_name, fn -> Process.sleep(process_time) end) end)
+      assert_receive {:telemetry_event, @lock_waiting_event, %{running: 1, waiting: 1}, ^lock_info}, 500
+
+      assert %{running: 1, waiting: 1} == ExSleeplock.lock_state(lock_name)
+
+      # Release the lock
+      ExSleeplock.release(lock_name)
+
+      # Wait for the task to complete
+      Task.await(task)
 
       LockSupervisor.stop_lock(lock_name)
     end

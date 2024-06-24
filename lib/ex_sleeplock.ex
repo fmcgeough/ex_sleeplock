@@ -154,6 +154,16 @@ defmodule ExSleeplock do
   end
 
   @doc """
+  Return the current state of a sleep lock
+  """
+  @spec lock_state(atom()) :: {:ok, lock_state()} | {:error, :sleeplock_not_found}
+  def lock_state(name) when is_atom(name) do
+    GenServer.call(name, :lock_state)
+  catch
+    :exit, _ -> {:error, :sleeplock_not_found}
+  end
+
+  @doc """
   Return help on creating a sleep lock
   """
   def help do

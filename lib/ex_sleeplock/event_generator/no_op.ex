@@ -11,4 +11,7 @@ defmodule ExSleeplock.EventGenerator.NoOp do
 
   @impl true
   def lock_released(_lock_info, _lock_state), do: :ok
+
+  @impl true
+  def lock_waiting(_lock_info, _lock_state), do: :ok
 end

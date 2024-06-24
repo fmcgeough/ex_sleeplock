@@ -3,8 +3,6 @@ defmodule ExSleeplock.LockSupervisor do
 
   use DynamicSupervisor
 
-  alias ExSleeplock.EventGenerator
-
   require Logger
 
   @doc """
@@ -64,8 +62,7 @@ defmodule ExSleeplock.LockSupervisor do
     end
   end
 
-  defp log_result({:ok, _}, lock_info) do
-    EventGenerator.lock_created(lock_info)
+  defp log_result({:ok, _}, _lock_info) do
   end
 
   defp log_result(result, lock_info) do

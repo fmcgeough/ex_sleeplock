@@ -39,22 +39,17 @@ defmodule ExSleeplock.Slot do
   end
 
   @doc """
-  Generate metric event when a lock is acquired
+  Generate metric event
   """
-  @spec lock_acquired(t()) :: any
-  def lock_acquired(slot) do
+  @spec generate_event(atom(), t()) :: any
+  def generate_event(event_type, slot) do
     lock_state = lock_state(slot)
     lock_info = lock_info(slot)
-    EventGenerator.lock_acquired(lock_info, lock_state)
-  end
-
-  @doc """
-  Generate metric event when a lock is released
-  """
-  @spec lock_released(t()) :: any
-  def lock_released(slot) do
-    lock_state = lock_state(slot)
-    lock_info = lock_info(slot)
-    EventGenerator.lock_released(lock_info, lock_state)
+    case event_type do
+      :lock_created -> EventGenerator.lock_created(lock_info)
+      :lock_acquired -> EventGenerator.lock_acquired(lock_info, lock_state)
+      :lock_released -> EventGenerator.lock_released(lock_info, lock_state)
+      :lock_waiting -> EventGenerator.lock_waiting(lock_info, lock_state)
+    end
   end
 end

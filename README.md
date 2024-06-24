@@ -48,7 +48,7 @@ element:
 :ex_sleeplock, notifier: ExSleeplock.EventGenerator.LockTelemetry
 ```
 
-When this is setup three telemetry events are generated.
+When this is setup the following telemetry events are generated.
 
 - `[:ex_sleeplock, :lock_created]` - lock created
   - measurements - `%{value: 1}`
@@ -57,6 +57,9 @@ When this is setup three telemetry events are generated.
   - measurements - `t:ExSleeplock.lock_state/0`
   - metadata - `t:ExSleeplock.lock_info/0`
 - `[:ex_sleeplock, :lock_released]` - lock released
+  - measurements - `t:ExSleeplock.lock_state/0`
+  - metadata - `t:ExSleeplock.lock_info/0`
+- `[:ex_sleeplock, :lock_waiting]` - a process is added to queue to wait
   - measurements - `t:ExSleeplock.lock_state/0`
   - metadata - `t:ExSleeplock.lock_info/0`
 

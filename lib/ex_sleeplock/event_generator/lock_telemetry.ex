@@ -6,7 +6,8 @@ defmodule ExSleeplock.EventGenerator.LockTelemetry do
   @events [
     [:ex_sleeplock, :lock_created],
     [:ex_sleeplock, :lock_acquired],
-    [:ex_sleeplock, :lock_released]
+    [:ex_sleeplock, :lock_released],
+    [:ex_sleeplock, :lock_waiting]
   ]
 
   @doc """
@@ -27,5 +28,10 @@ defmodule ExSleeplock.EventGenerator.LockTelemetry do
   @impl true
   def lock_released(lock_info, lock_state) do
     :telemetry.execute([:ex_sleeplock, :lock_released], lock_state, lock_info)
+  end
+
+  @impl true
+  def lock_waiting(lock_info, lock_state) do
+    :telemetry.execute([:ex_sleeplock, :lock_waiting], lock_state, lock_info)
   end
 end

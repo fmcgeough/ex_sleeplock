@@ -12,6 +12,7 @@ defmodule ExSleeplock.Lock do
 
   @impl true
   def init(state) do
+    Slot.generate_event(:lock_created, state)
     {:ok, state}
   end
 
@@ -33,11 +34,12 @@ defmodule ExSleeplock.Lock do
         # released will we use the call `GenServer.reply(next, :ok)` to let this
         # blocked process that requested lock move forward.
         updated_queue = :queue.snoc(waiting, from)
-        {:noreply, %{state | waiting: updated_queue}}
+        new_state = %{state | waiting: updated_queue}
+        Slot.generate_event(:lock_waiting, new_state)
+        {:noreply, new_state}
     end
   end
 
-  @impl true
   def handle_call(:release, {from, _ref}, %{current: current} = state) do
     new_state =
       case Map.get(current, from) do
@@ -53,7 +55,6 @@ defmodule ExSleeplock.Lock do
     {:reply, :ok, new_state}
   end
 
-  @impl true
   def handle_call(:attempt, from, state) do
     case try_lock(from, state) do
       {:ok, state} ->
@@ -64,7 +65,10 @@ defmodule ExSleeplock.Lock do
     end
   end
 
-  @impl true
+  def handle_call(:lock_state, _from, state) do
+    {:reply, Slot.lock_state(state), state}
+  end
+
   def handle_call(:stop_lock_process, _from, state) do
     {:stop, :shutdown, :ok, state}
   end
@@ -89,7 +93,7 @@ defmodule ExSleeplock.Lock do
     new_current = Map.put(current, from, monitor)
     new_state = %{state | current: new_current}
 
-    Slot.lock_acquired(new_state)
+    Slot.generate_event(:lock_acquired, new_state)
 
     new_state
   end
@@ -97,12 +101,12 @@ defmodule ExSleeplock.Lock do
   defp next_caller(%{waiting: waiting} = state) do
     case :queue.out(waiting) do
       {:empty, _} ->
-        Slot.lock_released(state)
+        Slot.generate_event(:lock_released, state)
         state
 
       {{:value, next}, new_waiting} ->
         new_state = %{state | waiting: new_waiting}
-        Slot.lock_released(new_state)
+        Slot.generate_event(:lock_released, new_state)
         GenServer.reply(next, :ok)
         lock_caller(next, new_state)
     end

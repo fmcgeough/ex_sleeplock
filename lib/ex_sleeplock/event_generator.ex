@@ -25,6 +25,11 @@ defmodule ExSleeplock.EventGenerator do
   """
   @callback lock_released(lock_info(), lock_state()) :: any
 
+  @doc """
+  Called when a process is added to queue to wait for a lock
+  """
+  @callback lock_waiting(lock_info(), lock_state()) :: any
+
   def lock_created(lock_info) do
     @lock_notifier.lock_created(lock_info)
   end
@@ -35,5 +40,9 @@ defmodule ExSleeplock.EventGenerator do
 
   def lock_released(lock_info, lock_state) do
     @lock_notifier.lock_released(lock_info, lock_state)
+  end
+
+  def lock_waiting(lock_info, lock_state) do
+    @lock_notifier.lock_waiting(lock_info, lock_state)
   end
 end
