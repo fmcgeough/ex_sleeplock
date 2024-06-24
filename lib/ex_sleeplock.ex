@@ -16,7 +16,7 @@ defmodule ExSleeplock do
   @help "Sleep locks must have a unique name indicated by an atom and slots must be a positive integer"
 
   @typedoc """
-  General information about a lock using when generating events
+  General information about a lock
   """
   @type lock_info :: %{
           name: atom(),
@@ -24,8 +24,8 @@ defmodule ExSleeplock do
         }
 
   @typedoc """
-  Number of processes currently running in parallel and the number of processes waiting for a lock
-  used when generating acquire and release events
+  Number of processes that have obtained the lock and are currently running and
+  the number of processes waiting for a lock
   """
   @type lock_state :: %{
           running: non_neg_integer(),

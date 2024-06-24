@@ -3,7 +3,6 @@ defmodule ExSleeplock.Lock do
 
   use GenServer
 
-  alias ExSleeplock.EventGenerator
   alias ExSleeplock.Slot
 
   def start_link(%{num_slots: num_slots, name: name}) do
@@ -86,29 +85,26 @@ defmodule ExSleeplock.Lock do
   end
 
   defp lock_caller({from, _ref}, %{current: current} = state) do
-    num_running = Enum.count(current) + 1
-    num_waiting = :queue.len(state.waiting)
-    lock_info = Slot.lock_info(state)
-    EventGenerator.lock_acquired(lock_info, %{running: num_running, waiting: num_waiting})
-
     monitor = Process.monitor(from)
-    %{state | current: Map.put(current, from, monitor)}
+    new_current = Map.put(current, from, monitor)
+    new_state = %{state | current: new_current}
+
+    Slot.lock_acquired(new_state)
+
+    new_state
   end
 
-  defp next_caller(%{current: current, waiting: waiting} = state) do
-    lock_info = Slot.lock_info(state)
-    running = Enum.count(current)
-
+  defp next_caller(%{waiting: waiting} = state) do
     case :queue.out(waiting) do
       {:empty, _} ->
-        EventGenerator.lock_released(lock_info, %{running: running, waiting: 0})
+        Slot.lock_released(state)
         state
 
       {{:value, next}, new_waiting} ->
-        EventGenerator.lock_released(lock_info, %{running: running, waiting: :queue.len(new_waiting)})
+        new_state = %{state | waiting: new_waiting}
+        Slot.lock_released(new_state)
         GenServer.reply(next, :ok)
-        new_state = lock_caller(next, state)
-        %{new_state | waiting: new_waiting}
+        lock_caller(next, new_state)
     end
   end
 end
