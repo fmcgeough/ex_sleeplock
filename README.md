@@ -35,7 +35,7 @@ locks are configured. These locks are automatically started. For example:
 config :ex_sleeplock, locks: [%{name: :test1, num_slots: 2}, %{name: :test2, num_slots: 3}]
 ```
 
-This config would create two slocks named `:test1` and `:test2` with the indicated
+This config would create two locks named `:test1` and `:test2` with the indicated
 concurrency.
 
 ## Telemetry
