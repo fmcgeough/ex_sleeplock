@@ -225,14 +225,15 @@ iex> ExSleepLock.lock_state(:test_sleepwalk)
 
 ## Contributing
 
-Pull requests are welcome. All PR's should:
+Pull requests are welcome. The project uses Github Actions. All PR's
+should:
 
 - have no test failures
 - be formatted properly (`mix format`)
 - have no credo issues (`mix credo --strict`)
 - have no dialyzer issues (`mix dialyzer`)
 
-If new functionaly is proposed there should be unit tests to cover it.
+If new functionality is proposed there should be unit tests to cover it.
 
 ## License
 
