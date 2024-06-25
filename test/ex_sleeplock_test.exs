@@ -211,8 +211,14 @@ defmodule ExSleeplockTest do
 
       lock_info = %{name: lock_name, num_slots: 1}
       assert_receive {:telemetry_event, @lock_create_event, %{value: 1}, ^lock_info}, 500
-      assert_receive {:telemetry_event, @lock_acquired_event, %{running: 1, waiting: 0}, ^lock_info}, 500
-      assert_receive {:telemetry_event, @lock_released_event, %{running: 0, waiting: 0}, ^lock_info}, 500
+
+      assert_receive {:telemetry_event, @lock_acquired_event, %{running: 1, waiting: 0},
+                      ^lock_info},
+                     500
+
+      assert_receive {:telemetry_event, @lock_released_event, %{running: 0, waiting: 0},
+                      ^lock_info},
+                     500
 
       LockSupervisor.stop_lock(lock_name)
     end
@@ -235,7 +241,9 @@ defmodule ExSleeplockTest do
       LockSupervisor.stop_lock(lock_name)
     end
 
-    test "when lock is obtained and one is waiting the correct state is returned", %{test: lock_name} do
+    test "when lock is obtained and one is waiting the correct state is returned", %{
+      test: lock_name
+    } do
       stub_with(ExSleeplock.EventGeneratorMock, ExSleeplock.EventGenerator.LockTelemetry)
       attach_to_many_events(lock_name, LockTelemetry.events())
       lock_info = %{name: lock_name, num_slots: 1}
@@ -244,11 +252,19 @@ defmodule ExSleeplockTest do
       assert {:ok, _pid} = ExSleeplock.new(lock_name, 1)
 
       assert :ok == ExSleeplock.acquire(lock_name)
-      assert_receive {:telemetry_event, @lock_acquired_event, %{running: 1, waiting: 0}, ^lock_info}, 500
+
+      assert_receive {:telemetry_event, @lock_acquired_event, %{running: 1, waiting: 0},
+                      ^lock_info},
+                     500
+
       assert %{running: 1, waiting: 0} == ExSleeplock.lock_state(lock_name)
 
-      task = Task.async(fn -> ExSleeplock.execute(lock_name, fn -> Process.sleep(process_time) end) end)
-      assert_receive {:telemetry_event, @lock_waiting_event, %{running: 1, waiting: 1}, ^lock_info}, 500
+      task =
+        Task.async(fn -> ExSleeplock.execute(lock_name, fn -> Process.sleep(process_time) end) end)
+
+      assert_receive {:telemetry_event, @lock_waiting_event, %{running: 1, waiting: 1},
+                      ^lock_info},
+                     500
 
       assert %{running: 1, waiting: 1} == ExSleeplock.lock_state(lock_name)
 
@@ -276,8 +292,14 @@ defmodule ExSleeplockTest do
       Task.await(task)
 
       assert_receive {:telemetry_event, @lock_create_event, %{value: 1}, ^lock_info}, 500
-      assert_receive {:telemetry_event, @lock_acquired_event, %{running: 1, waiting: 0}, ^lock_info}, 500
-      assert_receive {:telemetry_event, @lock_released_event, %{running: 0, waiting: 0}, ^lock_info}, 500
+
+      assert_receive {:telemetry_event, @lock_acquired_event, %{running: 1, waiting: 0},
+                      ^lock_info},
+                     500
+
+      assert_receive {:telemetry_event, @lock_released_event, %{running: 0, waiting: 0},
+                      ^lock_info},
+                     500
 
       LockSupervisor.stop_lock(lock_name)
     end

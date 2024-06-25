@@ -35,7 +35,12 @@ defmodule ExSleeplock.ApplicationTest do
           %{name: name, num_slots: 1}
         end)
 
-      Application.put_env(:ex_sleeplock, :locks, [%{test123: :invalid}] ++ locks ++ [%{test: :invalid}])
+      Application.put_env(
+        :ex_sleeplock,
+        :locks,
+        [%{test123: :invalid}] ++ locks ++ [%{test: :invalid}]
+      )
+
       specs = Enum.map(locks, &LockSupervisor.lock_child_spec/1)
       assert specs == ExSleeplock.Application.configured_locks()
     end

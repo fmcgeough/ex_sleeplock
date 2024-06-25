@@ -3,7 +3,11 @@ defmodule ExSleeplock.EventGenerator do
 
   # Define a beehaviour to allow event generation when a lock is acquired or released
 
-  @lock_notifier Application.compile_env(:ex_sleeplock, :notifier, ExSleeplock.EventGenerator.NoOp)
+  @lock_notifier Application.compile_env(
+                   :ex_sleeplock,
+                   :notifier,
+                   ExSleeplock.EventGenerator.NoOp
+                 )
 
   @type lock_info :: ExSleeplock.lock_info()
   @type lock_state :: ExSleeplock.lock_state()
