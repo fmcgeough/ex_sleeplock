@@ -33,9 +33,10 @@ ExSleeplock.execute(:database_lock, fn -> some_function() end)
 
 When the maximum number of concurrent processes are running there are no "slots"
 available. If a caller attempts to obtain the lock to execute code the caller is
-placed in a queue. The process execution is suspended until a lock is available.
-If there are multiple processes waiting they are handled in a FIFO (first in
-first out) manner.
+placed in a queue. The execution of that process is suspended until a lock is
+available. Then the process locks and continues its execution. This requires no
+intervention by the app. Waiting processes are in a queue. They are handled
+in a FIFO (first in first out) manner.
 
 ## Configuring Lock Creation on Startup
 
