@@ -129,12 +129,15 @@ released (even though the processs never called `ExSleeplock.release/1`).
 
 ## Brief API Overview
 
-* `ExSleeplock.new/2` - create a sleep lock. Before a sleep lock can be used it
+* `ExSleeplock.new/2` - create a lock. Before a lock can be used it
   has to be created. This is generally done when the application starts.
-* `ExSleeplock.execute/2` - execute a function after acquiring a sleep lock
-* `ExSleeplock.acquire/1` - acquire a sleep lock. Blocks until lock is acquired
-* `ExSleeplock.attempt/1` - attempt to acquire a sleep lock. Doesn't block.
-* `ExSleeplock.release/1` - release a sleep lock
+* `ExSleeplock.execute/2` - execute a function after acquiring a lock and
+  release it when function completes.
+* `ExSleeplock.acquire/1` - acquire a lock. Blocks until lock is acquired. Caller
+  is responsible for releasing the lock.
+* `ExSleeplock.attempt/1` - attempt to acquire a lock. Doesn't block. Returns
+  `{:error, :unavailable}` if lock cannot be obtained.
+* `ExSleeplock.release/1` - release a lock
 
 ## Trying It Out in iex
 
