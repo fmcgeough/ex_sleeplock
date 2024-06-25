@@ -38,6 +38,47 @@ available. Then the process locks and continues its execution. This requires no
 intervention by the app. Waiting processes are in a queue. They are handled
 in a FIFO (first in first out) manner.
 
+The API available is defined in `ExSleeplock`:
+
+* `ExSleeplock.new/2` - create a lock. Before a lock can be used it
+  has to be created. This is generally done when the application starts.
+* `ExSleeplock.execute/2` - execute a function after acquiring a lock and
+  release it when function completes.
+* `ExSleeplock.acquire/1` - acquire a lock. Blocks until lock is acquired. Caller
+  is responsible for releasing the lock.
+* `ExSleeplock.attempt/1` - attempt to acquire a lock. Doesn't block. Returns
+  `{:error, :unavailable}` if lock cannot be obtained.
+* `ExSleeplock.release/1` - release a lock
+
+## Using Locks
+
+```
+ExSleeplock.new(:process_foo, _num_slots = 2)
+```
+
+This creates a lock called `:process_foo` with two slots. Only two processes
+are allowed to execute concurrently. Using it from an app looks something
+like this:
+
+```
+result = ExSleeplock.execute(:process_foo, fn -> some_work() end)
+```
+
+If there are already two processes with a `:process_foo` lock the third
+process is placed in a queue and resumes execution when one of the two currently
+running processes unlock.
+
+Using `ExSleeplock.execute/2` is the easiest way to use this library but you can
+manage your own lock and timing of execution of a block of code using
+`ExSleeplock.acquire/1` (blocking) or `ExSleeplock.attempt/1` (non-blocking). If you
+are using the calls in this way then you are responsible for ensuring
+`ExSleeplock.release/1` is called. Until `ExSleeplock.release/1` is called a slot is
+being used and a new process may not be able to move forward.
+
+When a lock is obtained by a process the library creates a monitor on the process
+taking the lock. If the process exits unexpectedly the lock is automatically
+released (even though the processs never called `ExSleeplock.release/1`).
+
 ## Configuring Lock Creation on Startup
 
 When the library starts up it reads the application environment to see if any
@@ -80,66 +121,26 @@ When this is setup the following telemetry events are generated.
 
 See the documentation for `ExSleeplock` for more information.
 
-## Why would you need this?
+## Sample Use Case
 
 The library is useful when you can have code within your app that must access a
 resource that is limited in some way. You want only 2 or 3 (or some limited
 number) of processes accessing the resource at the same time.
 
-An example scenario is an app that connects to Kafka as a source of messages
-that must be processed. Messages can arrive in parallel and are processed by
-separate processes. The messages are processedc and stored in a relational
-database. In addition, the app is also responsible for servicing an API. The API
-reads / writes to the same relational database.
+An example use case is an app that:
 
-There are two issues in this scenario. One, there are a limited number of
-connections to the database. You might get n incoming messages but have much
-less than n connections available. Second, you don't want all your connections
-used up to process incoming messages since your API could not respond in a timely
-manner to incoming API requests.
+- provides an API. The API performs database reads and writes
+- connects to Kafka as a source of messages. The messages are processed
+  in parallel by different processes. The message processing results in
+  database reads and writes.
 
-## Simple Explanation of the Mechanics
+There are two issues in this use case. First, there are a limited number of
+connections to the database. The app can get more incoming messages in parallel
+then the number of available database connecitons. Second, the app cannot use
+all the connections to process incoming messages. If a connection is not
+available the API cannot respond in a timely manner to incoming API requests.
 
-```
-ExSleeplock.new(:process_foo, _num_slots = 2)
-```
-
-This creates a lock called `:process_foo` with two slots. Only two processes
-are allowed to execute concurrently. Using it from an app looks something
-like this:
-
-```
-result = ExSleeplock.execute(:process_foo, fn -> some_work() end)
-```
-
-If there are already two processes with a `:process_foo` lock the third
-process is placed in a queue and resumes execution when one of the two currently
-running processes unlock.
-
-Using `ExSleeplock.execute/2` is the easiest way to use this library but you can
-manage your own lock and timing of execution of a block of code using
-`ExSleeplock.acquire/1` (blocking) or `ExSleeplock.attempt/1` (non-blocking). If you
-are using the calls in this way then you are responsible for ensuring
-`ExSleeplock.release/1` is called. Until `ExSleeplock.release/1` is called a slot is
-being used and a new process may not be able to move forward.
-
-When a lock is obtained by a process the library creates a monitor on the process
-taking the lock. If the process exits unexpectedly the lock is automatically
-released (even though the processs never called `ExSleeplock.release/1`).
-
-## Brief API Overview
-
-* `ExSleeplock.new/2` - create a lock. Before a lock can be used it
-  has to be created. This is generally done when the application starts.
-* `ExSleeplock.execute/2` - execute a function after acquiring a lock and
-  release it when function completes.
-* `ExSleeplock.acquire/1` - acquire a lock. Blocks until lock is acquired. Caller
-  is responsible for releasing the lock.
-* `ExSleeplock.attempt/1` - attempt to acquire a lock. Doesn't block. Returns
-  `{:error, :unavailable}` if lock cannot be obtained.
-* `ExSleeplock.release/1` - release a lock
-
-## Trying It Out in iex
+## Development Session
 
 Start an iex session and paste the following module into the session.
 The `process/3` function in the module simulates processing by sleeping
