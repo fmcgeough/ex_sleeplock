@@ -7,7 +7,7 @@ It provides similar functionality but adds:
 
 - monitoring of processes that take locks
 - dynamic supervision of the locks themselves
-- telemetry event generation
+- telemetry
 - creation of locks at startup from config file
 - function to get the current state of a lock (number processes running and waiting)
 
