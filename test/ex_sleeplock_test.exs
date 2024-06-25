@@ -185,7 +185,7 @@ defmodule ExSleeplockTest do
       # the first two finishes.
       tasks =
         Enum.map(1..num_processes, fn idx ->
-          Task.async(fn -> Consumer.process(lock_name, process_time, idx) end)
+          Task.async(fn -> Consumer.sleeplock_execute(lock_name, process_time, idx) end)
         end)
 
       # Wait for all the tasks to finish

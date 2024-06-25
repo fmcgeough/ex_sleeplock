@@ -1,8 +1,10 @@
 defmodule Consumer do
   @moduledoc false
 
-  def process(sleeplock_name, ms_to_work, idx) do
-    ExSleeplock.execute(sleeplock_name, fn -> test(ms_to_work, idx) end)
+  @spec sleeplock_execute(atom(), non_neg_integer(), non_neg_integer()) :: any()
+  def sleeplock_execute(sleeplock_name, ms_to_work, idx) when is_atom(sleeplock_name) do
+    fun = fn -> test(ms_to_work, idx) end
+    ExSleeplock.execute(sleeplock_name, fun)
   end
 
   def acquire_with_no_release(sleeplock_name, ms_to_work, idx) do

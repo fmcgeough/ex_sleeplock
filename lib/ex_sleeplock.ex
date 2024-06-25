@@ -100,7 +100,7 @@ defmodule ExSleeplock do
   * `{:error, :sleeplock_not_found}` - if called with a name that doesn't match
     an existing sleeplock
   """
-  @spec execute(atom(), nil) :: any() | {:error, :sleeplock_not_found}
+  @spec execute(atom(), (() -> any())) :: any() | {:error, :sleeplock_not_found}
   def execute(name, fun) when is_atom(name) do
     case acquire(name) do
       :ok -> fun.()
