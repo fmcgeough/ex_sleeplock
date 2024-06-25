@@ -101,7 +101,7 @@ manner to incoming API requests.
 ## Simple Explanation of the Mechanics
 
 ```
-ExSleeplock.new(:process_foo, _parallelism = 2)
+ExSleeplock.new(:process_foo, _num_slots = 2)
 ```
 
 This creates a lock called `:process_foo` with two slots. Only two processes
@@ -113,8 +113,8 @@ result = ExSleeplock.execute(:process_foo, fn -> some_work() end)
 ```
 
 If there are already two processes with a `:process_foo` lock the third
-process waits until one of the two currently running processes unlock.
-Once a lock is released the waiting process starts immediately.
+process is placed in a queue and resumes execution when one of the two currently
+running processes unlock.
 
 Using `ExSleeplock.execute/2` is the easiest way to use this library but you can
 manage your own lock and timing of execution of a block of code using
