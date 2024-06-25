@@ -17,8 +17,8 @@ Thanks to _Isaac Whitfield_ who created the Erlang sleeplocks library.
 
 This library provides an app with the ability to create a named concurrent lock.
 The name is an atom and the level of concurrency is a positive integer value referred
-to as "slots". For example, `%{name: :database_lock, num_slots: 2}` is a concurrent
-lock called `database_lock` and two processes can have a lock.
+to as "num_slots". For example, `%{name: :database_lock, num_slots: 2}` is a concurrent
+lock called `:database_lock` that allows two processes to have a lock concurrently.
 
 A lock is a separate process identified by the atom. This means the atom must be
 unique for the app.
