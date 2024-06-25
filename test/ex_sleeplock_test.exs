@@ -261,4 +261,25 @@ defmodule ExSleeplockTest do
       LockSupervisor.stop_lock(lock_name)
     end
   end
+
+  describe "process issues" do
+    test "lock release occurs if process exits without unlocking", %{test: lock_name} do
+      stub_with(ExSleeplock.EventGeneratorMock, ExSleeplock.EventGenerator.LockTelemetry)
+      attach_to_many_events(lock_name, LockTelemetry.events())
+      lock_info = %{name: lock_name, num_slots: 1}
+
+      process_time = 250
+      assert {:ok, _pid} = ExSleeplock.new(lock_name, 1)
+
+      task = Task.async(fn -> Consumer.acquire_with_no_release(lock_name, process_time, 1) end)
+      # Wait for the task to complete
+      Task.await(task)
+
+      assert_receive {:telemetry_event, @lock_create_event, %{value: 1}, ^lock_info}, 500
+      assert_receive {:telemetry_event, @lock_acquired_event, %{running: 1, waiting: 0}, ^lock_info}, 500
+      assert_receive {:telemetry_event, @lock_released_event, %{running: 0, waiting: 0}, ^lock_info}, 500
+
+      LockSupervisor.stop_lock(lock_name)
+    end
+  end
 end

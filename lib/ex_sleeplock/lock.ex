@@ -65,7 +65,9 @@ defmodule ExSleeplock.Lock do
 
   @impl true
   def handle_info({:DOWN, _ref, :process, pid, _reason}, %{current: current} = state) do
-    {:noreply, %{state | current: Map.delete(current, pid)}}
+    new_current = Map.delete(current, pid)
+    new_state = next_caller(%{state | current: new_current})
+    {:noreply, new_state}
   end
 
   defp try_lock(from, %{num_slots: num_slots, current: current} = state) do
