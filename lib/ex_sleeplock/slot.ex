@@ -45,6 +45,7 @@ defmodule ExSleeplock.Slot do
   def generate_event(event_type, slot) do
     lock_state = lock_state(slot)
     lock_info = lock_info(slot)
+
     case event_type do
       :lock_created -> EventGenerator.lock_created(lock_info)
       :lock_acquired -> EventGenerator.lock_acquired(lock_info, lock_state)
