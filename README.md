@@ -15,17 +15,23 @@ Thanks to _Isaac Whitfield_ who created the Erlang sleeplocks library.
 
 ## What Does the Library Provide?
 
-This library provides an app with the ability to create a lock with a name
-and positive integer value. The integer value indicates the allowed number of
-concurrent processes. These are referred to as "slots".
+This library provides an app with the ability to create a named concurrent lock.
+The name is an atom and the level of concurrency is a positive integer value referred
+to as "slots". For example, `%{name: :database_lock, num_slots: 2}` is a concurrent
+lock called `database_lock` and two processes can have a lock.
 
-The created lock is then used by the app to execute code protected by the lock.
-A lock is kept until the block of code completes. Then the lock is released.
+A lock is a separate process identified by the atom. This means the atom must be
+unique for the app.
+
+The app executes a block of code protected by the lock. The lock is kept until the
+block of code completes. Then it is released. The easiest (and suggested) way for
+an app to do this is: `ExSleeplock.execute(:database_lock, fn -> some_function() end)`.
+
 When the maximum number of concurrent processes are running there are no "slots"
 available. If a caller attempts to obtain the lock to execute code the caller is
- placed in a queue. The process execution is suspended until a lock is
-available. If there are multiple processes waiting they are handled in a FIFO
-(first in first out) manner.
+placed in a queue. The process execution is suspended until a lock is available.
+If there are multiple processes waiting they are handled in a FIFO (first in
+first out) manner.
 
 ## Configuring Lock Creation on Startup
 
@@ -38,6 +44,9 @@ config :ex_sleeplock, locks: [%{name: :test1, num_slots: 2}, %{name: :test2, num
 
 This config would create two locks named `:test1` and `:test2` with the indicated
 concurrency.
+
+Using this approach is not required. An application can create a lock by calling
+the function `ExSleeplock.new/2`. This should be done when the application starts.
 
 ## Telemetry
 
