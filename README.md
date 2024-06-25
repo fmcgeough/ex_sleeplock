@@ -220,15 +220,17 @@ iex> ExSleepLock.lock_state(:test_sleepwalk)
 %{running: 0, waiting: 0}
 ```
 
-## Other Notes
+## Contributing
 
-The only thing that you might not have seen if you've worked with Elixir/Phoenix
-in standard web apps is using
-[GenServer.reply/2](https://hexdocs.pm/elixir/GenServer.html#reply/2). This is a
-feature of OTP that just doesn't come up that often. If `:noreply` is
-returned from a handle_call then the calling process is suspended. Only when
-someone (and it actually doesn't have to be the GenServer that got the original
-`handle_call` calls `GenServer.reply` the result is returned to the
-caller). By default, this would time-out but if you look at the `acquire`
-function it passes `infinity` as the last argument. This means it waits until an
-answer is available.
+Pull requests are welcome. All PR's should:
+
+- have no test failures
+- be formatted properly (`mix format`)
+- have no credo issues (`mix credo --strict`)
+- have no dialyzer issues (`mix dialyzer`)
+
+If new functionaly is proposed there should be unit tests to cover it.
+
+## License
+
+MIT
