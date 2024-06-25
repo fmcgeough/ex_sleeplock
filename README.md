@@ -13,7 +13,7 @@ It provides similar functionality but adds:
 
 Thanks to _Isaac Whitfield_ who created the Erlang sleeplocks library.
 
-## What Does the Library Provide?
+## Overview
 
 This library provides an app with the ability to create a named concurrent lock.
 The name is an atom and the level of concurrency is a positive integer value referred
