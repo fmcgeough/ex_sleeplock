@@ -16,12 +16,6 @@ defmodule ExSleeplock.Lock do
     {:ok, state}
   end
 
-  def stop_lock_process(name) do
-    GenServer.call(name, :stop_lock_process, :infinity)
-  catch
-    :exit, _ -> {:error, :sleeplock_not_found}
-  end
-
   @impl true
   def handle_call(:acquire, from, %{waiting: waiting} = state) do
     case try_lock(from, state) do
@@ -67,10 +61,6 @@ defmodule ExSleeplock.Lock do
 
   def handle_call(:lock_state, _from, state) do
     {:reply, Slot.lock_state(state), state}
-  end
-
-  def handle_call(:stop_lock_process, _from, state) do
-    {:stop, :shutdown, :ok, state}
   end
 
   @impl true

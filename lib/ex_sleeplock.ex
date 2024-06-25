@@ -108,8 +108,6 @@ defmodule ExSleeplock do
     end
   after
     release(name)
-  catch
-    :exit, _ -> {:error, :sleeplock_not_found}
   end
 
   @doc """

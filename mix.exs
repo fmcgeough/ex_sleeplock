@@ -18,9 +18,6 @@ defmodule ExSleeplock.MixProject do
         language: "en"
       ],
       test_coverage: [
-        # This output config should be kept in sync with the one in
-        # coveralls.json
-        output: "dist/code-coverage",
         tool: ExCoveralls
       ],
       preferred_cli_env: [coveralls: :test, "coveralls.html": :test]

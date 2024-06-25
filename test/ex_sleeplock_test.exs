@@ -104,11 +104,6 @@ defmodule ExSleeplockTest do
   end
 
   describe "execute/2" do
-    setup do
-      stub_with(ExSleeplock.EventGeneratorMock, ExSleeplock.EventGenerator.NoOp)
-      :ok
-    end
-
     test "trying to use non-existent is error" do
       fun = fn -> "ABC" end
       assert ExSleeplock.execute(:foo, fun) == {:error, :sleeplock_not_found}
@@ -150,8 +145,8 @@ defmodule ExSleeplockTest do
       ExSleeplock.release(:test1)
       ExSleeplock.release(:test2)
 
-      ExSleeplock.Lock.stop_lock_process(:test1)
-      ExSleeplock.Lock.stop_lock_process(:test2)
+      LockSupervisor.stop_lock(:test1)
+      LockSupervisor.stop_lock(:test2)
     end
   end
 

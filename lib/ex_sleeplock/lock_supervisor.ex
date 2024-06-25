@@ -55,7 +55,7 @@ defmodule ExSleeplock.LockSupervisor do
   @doc """
   Stop a lock process
   """
-  def stop_lock(name) do
+  def stop_lock(name) when is_atom(name) do
     case Process.whereis(name) do
       nil -> {:error, :sleeplock_not_found}
       pid -> DynamicSupervisor.terminate_child(__MODULE__, pid)
