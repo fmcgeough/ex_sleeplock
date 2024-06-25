@@ -25,7 +25,11 @@ unique for the app.
 
 The app executes a block of code protected by the lock. The lock is kept until the
 block of code completes. Then it is released. The easiest (and suggested) way for
-an app to do this is: `ExSleeplock.execute(:database_lock, fn -> some_function() end)`.
+an app to do this is:
+
+```
+ExSleeplock.execute(:database_lock, fn -> some_function() end)
+```
 
 When the maximum number of concurrent processes are running there are no "slots"
 available. If a caller attempts to obtain the lock to execute code the caller is
