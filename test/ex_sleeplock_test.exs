@@ -212,12 +212,10 @@ defmodule ExSleeplockTest do
       lock_info = %{name: lock_name, num_slots: 1}
       assert_receive {:telemetry_event, @lock_create_event, %{value: 1}, ^lock_info}, 500
 
-      assert_receive {:telemetry_event, @lock_acquired_event, %{running: 1, waiting: 0},
-                      ^lock_info},
+      assert_receive {:telemetry_event, @lock_acquired_event, %{running: 1, waiting: 0}, ^lock_info},
                      500
 
-      assert_receive {:telemetry_event, @lock_released_event, %{running: 0, waiting: 0},
-                      ^lock_info},
+      assert_receive {:telemetry_event, @lock_released_event, %{running: 0, waiting: 0}, ^lock_info},
                      500
 
       LockSupervisor.stop_lock(lock_name)
@@ -253,8 +251,7 @@ defmodule ExSleeplockTest do
 
       assert :ok == ExSleeplock.acquire(lock_name)
 
-      assert_receive {:telemetry_event, @lock_acquired_event, %{running: 1, waiting: 0},
-                      ^lock_info},
+      assert_receive {:telemetry_event, @lock_acquired_event, %{running: 1, waiting: 0}, ^lock_info},
                      500
 
       assert %{running: 1, waiting: 0} == ExSleeplock.lock_state(lock_name)
@@ -262,8 +259,7 @@ defmodule ExSleeplockTest do
       task =
         Task.async(fn -> ExSleeplock.execute(lock_name, fn -> Process.sleep(process_time) end) end)
 
-      assert_receive {:telemetry_event, @lock_waiting_event, %{running: 1, waiting: 1},
-                      ^lock_info},
+      assert_receive {:telemetry_event, @lock_waiting_event, %{running: 1, waiting: 1}, ^lock_info},
                      500
 
       assert %{running: 1, waiting: 1} == ExSleeplock.lock_state(lock_name)
@@ -293,12 +289,10 @@ defmodule ExSleeplockTest do
 
       assert_receive {:telemetry_event, @lock_create_event, %{value: 1}, ^lock_info}, 500
 
-      assert_receive {:telemetry_event, @lock_acquired_event, %{running: 1, waiting: 0},
-                      ^lock_info},
+      assert_receive {:telemetry_event, @lock_acquired_event, %{running: 1, waiting: 0}, ^lock_info},
                      500
 
-      assert_receive {:telemetry_event, @lock_released_event, %{running: 0, waiting: 0},
-                      ^lock_info},
+      assert_receive {:telemetry_event, @lock_released_event, %{running: 0, waiting: 0}, ^lock_info},
                      500
 
       LockSupervisor.stop_lock(lock_name)
