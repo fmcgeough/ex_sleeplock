@@ -17,7 +17,7 @@ Thanks to _Isaac Whitfield_ who created the Erlang sleeplocks library.
 
 This library provides an app with the ability to create a named concurrent lock.
 The app calls a library function to create a lock with a unique (atom) name and
-a level of concurrency ( positive integer). When a lock is created the library
+a level of concurrency (positive integer). When a lock is created the library
 starts a process using the atom as it's name. The level of concurrency is
 defined by the "num_slots". So, `ExSleeplock.new(:my_lock, _num_slots = 2)`
 creates a concurrent lock named `:my_lock` that allows two processes to have a
