@@ -13,7 +13,7 @@ defmodule ExSleeplock do
   then releases the lock (returning the function return value to the caller)
   This ensures that the lock is always released even if an exception is raised.
   """
-  @help "Sleep locks must have a unique name indicated by an atom and slots must be a positive integer"
+  @help "Locks must have a unique name indicated by an atom and slots must be a positive integer"
 
   @typedoc """
   General information about a lock
@@ -33,14 +33,14 @@ defmodule ExSleeplock do
         }
 
   @doc """
-  Create a sleep lock
+  Create a lock
 
   ## Arguments
 
-  * name - a unique atom identifying the sleep lock. The name becomes the process name
+  * name - a unique atom identifying the lock. The name becomes the process name
     for the lock
   * num_slots - a positive integer indicating how many processes are allowed to hold
-    this sleep lock at once
+    this lock at once
 
   ## Returns
 
@@ -61,26 +61,26 @@ defmodule ExSleeplock do
   end
 
   @doc """
-  Aquire a sleep lock
+  Aquire a lock
 
-  This will block until a lock can be acquired. When a sleep lock is
+  This will block until a lock can be acquired. When a lock is
   acquired the caller is responsible for calling `release/1`.
 
   ## Arguments
 
-  * name - a unique atom identifying the sleep lock
+  * name - a unique atom identifying the lock
 
   ## Returns
 
   * `:ok` - after lock is acquired
-  * `{:error, :sleeplock_not_found}` - if called with a name that doesn't match
-    an existing sleeplock
+  * `{:error, :lock_not_found}` - if called with a name that doesn't match
+    an existing lock
   """
-  @spec acquire(atom()) :: :ok | {:error, :sleeplock_not_found}
+  @spec acquire(atom()) :: :ok | {:error, :lock_not_found}
   def acquire(name) when is_atom(name) do
     GenServer.call(name, :acquire, :infinity)
   catch
-    :exit, _ -> {:error, :sleeplock_not_found}
+    :exit, _ -> {:error, :lock_not_found}
   end
 
   @doc """
@@ -91,16 +91,16 @@ defmodule ExSleeplock do
 
   ## Arguments
 
-  * name - a unique atom identifying the sleep lock
-  * fun - a function that executes after the sleep lock is acquired
+  * name - a unique atom identifying the lock
+  * fun - a function that executes after the lock is acquired
 
   ## Returns
 
   * on success the call returns the value returned by the function supplied
-  * `{:error, :sleeplock_not_found}` - if called with a name that doesn't match
-    an existing sleeplock
+  * `{:error, :lock_not_found}` - if called with a name that doesn't match
+    an existing lock
   """
-  @spec execute(atom(), (-> any())) :: any() | {:error, :sleeplock_not_found}
+  @spec execute(atom(), (-> any())) :: any() | {:error, :lock_not_found}
   def execute(name, fun) when is_atom(name) do
     case acquire(name) do
       :ok -> fun.()
@@ -115,19 +115,19 @@ defmodule ExSleeplock do
 
   ## Arguments
 
-  * name - a unique atom identifying the sleep lock
+  * name - a unique atom identifying the lock
 
   ## Returns
 
   * `:ok` - always returned even if you do not have an acquired lock
-  * `{:error, :sleeplock_not_found}` - if called with a name that doesn't match
-    an existing sleeplock
+  * `{:error, :lock_not_found}` - if called with a name that doesn't match
+    an existing lock
   """
-  @spec release(atom()) :: :ok | {:error, :sleeplock_not_found}
+  @spec release(atom()) :: :ok | {:error, :lock_not_found}
   def release(name) when is_atom(name) do
     GenServer.call(name, :release)
   catch
-    :exit, _ -> {:error, :sleeplock_not_found}
+    :exit, _ -> {:error, :lock_not_found}
   end
 
   @doc """
@@ -135,34 +135,34 @@ defmodule ExSleeplock do
 
   ## Arguments
 
-  * name - a unique atom identifying the sleep lock
+  * name - a unique atom identifying the lock
 
   ## Returns
 
   * `:ok` - lock is acquired
   * `{:error, :unavailable}` - lock is not acquired
-  * `{:error, :sleeplock_not_found}` - if called with a name that doesn't match
-    an existing sleeplock
+  * `{:error, :lock_not_found}` - if called with a name that doesn't match
+    an existing lock
   """
-  @spec attempt(atom()) :: :ok | {:error, :unavailable} | {:error, :sleeplock_not_found}
+  @spec attempt(atom()) :: :ok | {:error, :unavailable} | {:error, :lock_not_found}
   def attempt(name) when is_atom(name) do
     GenServer.call(name, :attempt)
   catch
-    :exit, _ -> {:error, :sleeplock_not_found}
+    :exit, _ -> {:error, :lock_not_found}
   end
 
   @doc """
-  Return the current state of a sleep lock
+  Return lock's current state
   """
-  @spec lock_state(atom()) :: {:ok, lock_state()} | {:error, :sleeplock_not_found}
+  @spec lock_state(atom()) :: {:ok, lock_state()} | {:error, :lock_not_found}
   def lock_state(name) when is_atom(name) do
     GenServer.call(name, :lock_state)
   catch
-    :exit, _ -> {:error, :sleeplock_not_found}
+    :exit, _ -> {:error, :lock_not_found}
   end
 
   @doc """
-  Return help on creating a sleep lock
+  Return help message
   """
   def help do
     @help

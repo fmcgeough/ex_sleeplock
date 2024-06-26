@@ -69,7 +69,7 @@ defmodule ExSleeplockTest do
     end
 
     test "trying to use non-existent is error" do
-      assert ExSleeplock.acquire(:foo) == {:error, :sleeplock_not_found}
+      assert {:error, :lock_not_found} == ExSleeplock.acquire(:foo)
     end
 
     test "acquire works when lock exists", %{test: lock_name} do
@@ -86,7 +86,7 @@ defmodule ExSleeplockTest do
     end
 
     test "trying to use non-existent is error" do
-      assert ExSleeplock.release(:foo) == {:error, :sleeplock_not_found}
+      assert {:error, :lock_not_found} == ExSleeplock.release(:foo)
     end
 
     test "release when not locked returns :ok", %{test: lock_name} do
@@ -106,7 +106,7 @@ defmodule ExSleeplockTest do
   describe "execute/2" do
     test "trying to use non-existent is error" do
       fun = fn -> "ABC" end
-      assert ExSleeplock.execute(:foo, fun) == {:error, :sleeplock_not_found}
+      assert {:error, :lock_not_found} == ExSleeplock.execute(:foo, fun)
     end
   end
 
@@ -117,7 +117,7 @@ defmodule ExSleeplockTest do
     end
 
     test "trying to use non-existent is error" do
-      assert ExSleeplock.attempt(:foo) == {:error, :sleeplock_not_found}
+      assert {:error, :lock_not_found} == ExSleeplock.attempt(:foo)
     end
 
     test "if lock is available returns `:ok`", %{test: lock_name} do
@@ -234,7 +234,7 @@ defmodule ExSleeplockTest do
     end
 
     test "trying to use non-existent is error" do
-      assert ExSleeplock.lock_state(:foo) == {:error, :sleeplock_not_found}
+      assert ExSleeplock.lock_state(:foo) == {:error, :lock_not_found}
     end
 
     test "when no locks obtained returns 0 running and 0 waiting", %{test: lock_name} do
