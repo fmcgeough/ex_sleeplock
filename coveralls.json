@@ -2,6 +2,7 @@
   "skip_files": [
     "test",
     "test/support",
-    "lib/ex_sleeplock/event_generator/no_op.ex"
+    "lib/ex_sleeplock/event_generator/no_op.ex",
+    "deps/mox/lib/mox.ex"
   ]
 }

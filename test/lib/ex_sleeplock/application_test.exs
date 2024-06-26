@@ -10,7 +10,7 @@ defmodule ExSleeplock.ApplicationTest do
       Application.delete_env(:ex_sleeplock, :locks)
     end
 
-    test "valid lock; returns child spec" do
+    test "valid lock; returns [ExSleeplock.StartupLocks]" do
       lock_info = %{name: :ex_sleeplock_test, num_slots: 1}
       Application.put_env(:ex_sleeplock, :locks, [lock_info])
       assert [ExSleeplock.StartupLocks] == ExSleeplock.Application.startup_locks()
