@@ -16,19 +16,19 @@ Thanks to _Isaac Whitfield_ who created the Erlang sleeplocks library.
 ## Overview
 
 This library provides an app with the ability to create a named concurrent lock.
-The name is an atom and the level of concurrency is a positive integer value referred
-to as "num_slots". For example, `%{name: :database_lock, num_slots: 2}` is a concurrent
-lock called `:database_lock` that allows two processes to have a lock concurrently.
-
-A lock is a separate process identified by the atom. This means the atom must be
-unique for the app.
+The app calls a library function to create a lock with a unique (atom) name and
+a level of concurrency ( positive integer). When a lock is created the library
+starts a process using the atom as it's name. The level of concurrency is
+defined by the "num_slots". So, `ExSleeplock.new(:my_lock, _num_slots = 2)`
+creates a concurrent lock named `:my_lock` that allows two processes to have a
+lock concurrently.
 
 The app executes a block of code protected by the lock. The lock is kept until the
 block of code completes. Then it is released. The easiest (and suggested) way for
 an app to do this is:
 
 ```
-ExSleeplock.execute(:database_lock, fn -> some_function() end)
+ExSleeplock.execute(:my_lock, fn -> some_function() end)
 ```
 
 When the maximum number of concurrent processes are running there are no "slots"
@@ -78,6 +78,10 @@ being used and a new process may not be able to move forward.
 When a lock is obtained by a process the library creates a monitor on the process
 taking the lock. If the process exits unexpectedly the lock is automatically
 released (even though the processs never called `ExSleeplock.release/1`).
+
+You can only obtain a lock once for a process (pid). Once a process has a lock
+calling a function to obtain a lock again always succeeds. However, no telemetry
+event is generated.
 
 ## Configuring Lock Creation on Startup
 
@@ -144,7 +148,8 @@ available the API cannot respond in a timely manner to incoming API requests.
 
 Start an iex session and paste the following module into the session.
 The `process/3` function in the module simulates processing by sleeping
-for 1 second plus some random number of milliseconds (< 100).
+for caller specified number of milliseconds plus some random number
+of milliseconds (< 100) to provide a bit of randomness.
 
 ```
 defmodule TestSleepwalk do
@@ -175,7 +180,7 @@ Now let's start more than 2 processes using Task.async. All of the processes cal
 `TestSleepwalk.process/3`. An explanation of what happens is provided below.
 
 ```
-iex> results = Enum.map(1..6, fn idx -> Task.async(fn -> TestSleepwalk.process(:test_sleepwalk, 1_000, idx) end) end) |> Task.await_many(10_000)
+iex> results = Enum.map(1..6, fn idx -> Task.async(fn -> TestSleepwalk.process(:test_sleepwalk, 1_000, idx) end) end) |> Task.await_many(:infinity)
 
 # All the tasks get queued. Before a call is done to obtain a lock the function outputs
 # an index number. This means that all of this output happens first.

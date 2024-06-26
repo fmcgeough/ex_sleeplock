@@ -120,19 +120,23 @@ defmodule ExSleeplockTest do
       assert ExSleeplock.attempt(:foo) == {:error, :sleeplock_not_found}
     end
 
-    test "if lock is available returns `:ok`", %{test: test} do
-      ExSleeplock.new(test, 1)
-      assert :ok == ExSleeplock.attempt(test)
-      ExSleeplock.release(test)
-      LockSupervisor.stop_lock(test)
+    test "if lock is available returns `:ok`", %{test: lock_name} do
+      ExSleeplock.new(lock_name, 1)
+      assert :ok == ExSleeplock.attempt(lock_name)
+      ExSleeplock.release(lock_name)
+      LockSupervisor.stop_lock(lock_name)
     end
 
-    test "if lock is unavailable `{:error, :unavailable}` is returned", %{test: test} do
-      assert {:ok, _pid} = ExSleeplock.new(test, 1)
-      assert :ok == ExSleeplock.attempt(test)
-      assert {:error, :unavailable} == ExSleeplock.attempt(test)
-      ExSleeplock.release(test)
-      LockSupervisor.stop_lock(test)
+    test "if lock is unavailable `{:error, :unavailable}` is returned", %{test: lock_name} do
+      assert {:ok, _pid} = ExSleeplock.new(lock_name, 1)
+      assert :ok == ExSleeplock.attempt(lock_name)
+
+      # Start separate process to attempt lock
+      task = Task.async(fn -> ExSleeplock.attempt(lock_name) end)
+      assert {:error, :unavailable} == Task.await(task)
+
+      ExSleeplock.release(lock_name)
+      LockSupervisor.stop_lock(lock_name)
     end
 
     test "multiple locks have independent attempt behaviour" do
@@ -218,6 +222,7 @@ defmodule ExSleeplockTest do
       assert_receive {:telemetry_event, @lock_released_event, %{running: 0, waiting: 0}, ^lock_info},
                      500
 
+      detach_from_event(lock_name)
       LockSupervisor.stop_lock(lock_name)
     end
   end
@@ -295,6 +300,27 @@ defmodule ExSleeplockTest do
       assert_receive {:telemetry_event, @lock_released_event, %{running: 0, waiting: 0}, ^lock_info},
                      500
 
+      detach_from_event(lock_name)
+      LockSupervisor.stop_lock(lock_name)
+    end
+
+    test "calling acquire 2nd time from same process returns :ok but doesn't use slot", %{test: lock_name} do
+      stub_with(ExSleeplock.EventGeneratorMock, ExSleeplock.EventGenerator.LockTelemetry)
+      attach_to_many_events(lock_name, LockTelemetry.events())
+      lock_info = %{name: lock_name, num_slots: 2}
+
+      assert {:ok, _pid} = ExSleeplock.new(lock_name, 2)
+      assert_receive {:telemetry_event, @lock_create_event, %{value: 1}, ^lock_info}, 500
+
+      assert :ok == ExSleeplock.acquire(lock_name)
+      assert %{running: 1} = ExSleeplock.lock_state(lock_name)
+      assert_receive {:telemetry_event, @lock_acquired_event, _, ^lock_info}, 500
+
+      assert :ok == ExSleeplock.acquire(lock_name)
+      assert %{running: 1} = ExSleeplock.lock_state(lock_name)
+      refute_receive {:telemetry_event, @lock_acquired_event, _, ^lock_info}, 500
+
+      detach_from_event(lock_name)
       LockSupervisor.stop_lock(lock_name)
     end
   end

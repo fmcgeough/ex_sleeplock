@@ -71,12 +71,16 @@ defmodule ExSleeplock.Lock do
   end
 
   defp try_lock(from, %{num_slots: num_slots, current: current} = state) do
-    case Enum.count(current) do
-      num_current when num_current == num_slots ->
-        {:error, :unavailable}
+    if already_locked?(from, current) do
+      {:ok, state}
+    else
+      case Enum.count(current) do
+        num_current when num_current == num_slots ->
+          {:error, :unavailable}
 
-      _ ->
-        {:ok, lock_caller(from, state)}
+        _ ->
+          {:ok, lock_caller(from, state)}
+      end
     end
   end
 
@@ -102,5 +106,9 @@ defmodule ExSleeplock.Lock do
         GenServer.reply(next, :ok)
         lock_caller(next, new_state)
     end
+  end
+
+  defp already_locked?({from, _ref}, current) do
+    Map.has_key?(current, from)
   end
 end
