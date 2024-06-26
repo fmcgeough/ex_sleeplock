@@ -91,7 +91,7 @@ defmodule ExSleeplockTest do
 
     test "release when not locked returns :ok", %{test: lock_name} do
       assert {:ok, _pid} = ExSleeplock.new(lock_name, _num_slots = 2)
-      assert ExSleeplock.release(lock_name) == :ok
+      assert :ok == ExSleeplock.release(lock_name)
       LockSupervisor.stop_lock(lock_name)
     end
 
