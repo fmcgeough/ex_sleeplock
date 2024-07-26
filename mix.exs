@@ -2,36 +2,24 @@ defmodule ExSleeplock.MixProject do
   @moduledoc false
   use Mix.Project
 
+  @source_url "https://github.com/fmcgeough/ex_sleeplock"
+  @version "0.10.0"
+
   def project do
     [
       app: :ex_sleeplock,
-      version: "0.10.0",
+      version: @version,
       elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       name: "ex_sleeplock",
-      source_url: "https://github.com/fmcgeough/ex_sleeplock",
+      source_url: @source_url,
       package: package(),
-      docs: [
-        main: "readme",
-        extras: ["README.md", "CHANGELOG.md": [title: "Changelog"]],
-        language: "en"
-      ],
-      test_coverage: [
-        tool: ExCoveralls
-      ],
-      preferred_cli_env:
-        cli_env_for(:test, [
-          "coveralls",
-          "coveralls.detail",
-          "coveralls.html"
-        ])
+      docs: docs(),
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [coveralls: :test, "coveralls.html": :test, "coveralls.detail": :test]
     ]
-  end
-
-  defp cli_env_for(env, tasks) do
-    Enum.reduce(tasks, [], fn key, acc -> Keyword.put(acc, :"#{key}", env) end)
   end
 
   def application do
@@ -55,12 +43,23 @@ defmodule ExSleeplock.MixProject do
     ]
   end
 
+  defp docs do
+    [
+      main: "readme",
+      name: "ExSleeplock",
+      source_ref: "v#{@version}",
+      canonical: "http://hexdocs.pm/ex_sleeplock",
+      source_url: @source_url,
+      extras: ["README.md", "CHANGELOG.md": [title: "Changelog"], LICENSE: [title: "License"]]
+    ]
+  end
+
   defp package do
     [
       description: "Easy throttle of number of processes",
       maintainers: ["Frank McGeough"],
       licenses: ["MIT"],
-      links: %{github: "https://github.com/PagerDuty/sleeplock"}
+      links: %{"GitHub" => @source_url}
     ]
   end
 end
