@@ -1,10 +1,11 @@
 defmodule ExSleeplock.MixProject do
+  @moduledoc false
   use Mix.Project
 
   def project do
     [
       app: :ex_sleeplock,
-      version: "1.0.0",
+      version: "0.10.0",
       elixir: "~> 1.13",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -14,17 +15,25 @@ defmodule ExSleeplock.MixProject do
       package: package(),
       docs: [
         main: "readme",
-        extras: ["README.md"],
+        extras: ["README.md", "CHANGELOG.md": [title: "Changelog"]],
         language: "en"
       ],
       test_coverage: [
         tool: ExCoveralls
       ],
-      preferred_cli_env: [coveralls: :test, "coveralls.html": :test]
+      preferred_cli_env:
+        cli_env_for(:test, [
+          "coveralls",
+          "coveralls.detail",
+          "coveralls.html"
+        ])
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
+  defp cli_env_for(env, tasks) do
+    Enum.reduce(tasks, [], fn key, acc -> Keyword.put(acc, :"#{key}", env) end)
+  end
+
   def application do
     [
       mod: {ExSleeplock.Application, []},
@@ -32,11 +41,9 @@ defmodule ExSleeplock.MixProject do
     ]
   end
 
-  # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       {:telemetry, "~> 1.2"},
