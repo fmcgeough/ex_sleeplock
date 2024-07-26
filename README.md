@@ -2,16 +2,16 @@
 
 Allow concurrent throttling using a named lock in Elixir.
 
-This project was inspired by the Erlang project [sleeplocks](https://hex.pm/packages/sleeplocks).
-It provides similar functionality but adds:
+This project was inspired by the Erlang project
+[sleeplocks](https://hex.pm/packages/sleeplocks) (thanks to _Isaac Whitfield_
+who created the Erlang sleeplocks library). It provides similar functionality
+but adds:
 
 - monitoring of processes that take locks
 - dynamic supervision of the locks themselves
 - telemetry
 - creation of locks at startup from config file
 - function to get the current state of a lock (number processes running and waiting)
-
-Thanks to _Isaac Whitfield_ who created the Erlang sleeplocks library.
 
 ## Overview
 
@@ -131,12 +131,12 @@ The library is useful when you can have code within your app that must access a
 resource that is limited in some way. You want only 2 or 3 (or some limited
 number) of processes accessing the resource at the same time.
 
-An example use case is an app that:
+An example use case is an app that provides an API and processes messages from
+Kafka. In this case:
 
-- provides an API. The API performs database reads and writes
-- connects to Kafka as a source of messages. The messages are processed
-  in parallel by different processes. The message processing results in
-  database reads and writes.
+- The API performs database reads and writes
+- The Kafka messages are processed in parallel by different processes and the
+  processing performs database reads and writes
 
 There are two issues in this use case. First, there are a limited number of
 connections to the database. The app can get more incoming messages in parallel
