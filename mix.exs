@@ -14,6 +14,7 @@ defmodule ExSleeplock.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       name: "ex_sleeplock",
+      description: "Allow concurrent throttling using a named lock in Elixir",
       source_url: @source_url,
       package: package(),
       docs: docs(),
@@ -56,7 +57,6 @@ defmodule ExSleeplock.MixProject do
 
   defp package do
     [
-      description: "Easy throttle of number of processes",
       maintainers: ["Frank McGeough"],
       licenses: ["MIT"],
       links: %{"GitHub" => @source_url}
