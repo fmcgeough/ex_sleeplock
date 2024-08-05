@@ -1,3 +1,9 @@
+0.10.1
+------
+#### Fixes
+* Push tag before hex publish so code aligns with doc in hex.pm
+
+
 0.10.0
 ------
 #### Enhancements
