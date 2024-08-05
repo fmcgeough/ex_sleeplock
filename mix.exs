@@ -3,7 +3,7 @@ defmodule ExSleeplock.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/fmcgeough/ex_sleeplock"
-  @version "0.10.1"
+  @version "0.10.2"
 
   def project do
     [
@@ -48,7 +48,6 @@ defmodule ExSleeplock.MixProject do
     [
       main: "readme",
       name: "ExSleeplock",
-      source_ref: "v#{@version}",
       canonical: "http://hexdocs.pm/ex_sleeplock",
       source_url: @source_url,
       extras: ["README.md", "CHANGELOG.md": [title: "Changelog"], LICENSE: [title: "License"]]
